@@ -16,12 +16,12 @@ jobs:
     env:
       runId: ${{ matrix.runner_type }}-${{ github.workflow }}
       artifactsDir: artifacts/${{ github.repository }}
-      pidstatFile: artifacts/${{ github.repository }}/${{ matrix.runner_type }}-pidstat.txt
+      iostatFile: artifacts/${{ github.repository }}/${{ matrix.runner_type }}-iostat.txt
       timingFile: artifacts/${{ github.repository }}/${{ matrix.runner_type }}-timing.txt
     
     steps:
       - run: mkdir -p ${{ runner.temp }}/${{ env.artifactsDir }}
-      - run: pidstat -h -u -d -r 1 | grep -v -e "^$" | grep -v "UID" > ${{ runner.temp }}/${{ env.pidstatFile }} &
+      - run: iostat -c -d -t -m 1 > ${{ runner.temp }}/${{ env.iostatFile }} &
       - run: date -R > ${{ runner.temp }}/${{ env.timingFile }}
         
       - name: Setup Python
