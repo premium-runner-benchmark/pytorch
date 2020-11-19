@@ -5,11 +5,25 @@ on:
     branches:
     - master
   pull_request:
+  workflow_dispatch:
 
 jobs:
   quick-checks:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.runner_type }}
+    strategy:
+      matrix:
+        runner_type: [ds2v2,ds3v2,ds4v2,ds5v2,m5large,f32s,f64s,n2s2]
+    env:
+      runId: ${{ matrix.runner_type }}-${{ github.workflow }}
+      artifactsDir: artifacts/${{ github.repository }}/${{ github.run_number }}
+      pidstatFile: artifacts/${{ github.repository }}/${{ github.run_number }}/${{ matrix.runner_type }}-pidstat.txt
+      timingFile: artifacts/${{ github.repository }}/${{ github.run_number }}/${{ matrix.runner_type }}-timing.txt
+    
     steps:
+      - run: mkdir -p ${{ runner.temp }}/${{ env.artifactsDir }}
+      - run: pidstat -h -u -d -r 1 | grep -v -e "^$" | grep -v "UID" > ${{ runner.temp }}/${{ env.pidstatFile }} &
+      - run: date -R > ${{ runner.temp }}/${{ env.timingFile }}
+        
       - name: Setup Python
         uses: actions/setup-python@v1
         with:
@@ -51,7 +65,16 @@ jobs:
         run: |
           set -eux
           python torch/testing/check_kernel_launches.py |& tee ${GITHUB_WORKSPACE}/cuda_kernel_launch_checks.txt
-
+      
+      # Collect/upload stats
+      - run: date -R >> ${{ runner.temp }}/${{ env.timingFile }}
+      - name: Upload a Build Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: data-${{ env.runId }}
+          path: ${{ runner.temp }}/${{ env.artifactsDir }}
+          if-no-files-found: error
+          
   flake8-py3:
     runs-on: ubuntu-latest
     steps:
