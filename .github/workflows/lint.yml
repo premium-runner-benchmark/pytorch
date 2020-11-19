@@ -21,7 +21,7 @@ jobs:
     
     steps:
       - run: mkdir -p ${{ runner.temp }}/${{ env.artifactsDir }}
-      - run: iostat -c -d -t -m 1 > ${{ runner.temp }}/${{ env.iostatFile }} &
+      - run: iostat -yxmt 1 > ${{ runner.temp }}/${{ env.iostatFile }} &
       - run: date -R > ${{ runner.temp }}/${{ env.timingFile }}
         
       - name: Setup Python
