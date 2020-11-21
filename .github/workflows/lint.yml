@@ -18,6 +18,7 @@ jobs:
       runId: ${{ matrix.runner_type }}-${{ github.workflow }}
       artifactsDir: artifacts/${{ github.repository }}
       iostatFile: artifacts/${{ github.repository }}/${{ matrix.runner_type }}-iostat.txt
+      vmstatFile: artifacts/${{ github.repository }}/${{ matrix.runner_type }}-vmstat.txt
       timingFile: artifacts/${{ github.repository }}/${{ matrix.runner_type }}-timing.txt
       ##########################
     
@@ -25,6 +26,7 @@ jobs:
       #### Start stat collection
       - run: mkdir -p ${{ runner.temp }}/${{ env.artifactsDir }}
       - run: iostat -yxmt 1 > ${{ runner.temp }}/${{ env.iostatFile }} &
+      - run: vmstat -n 1 > ${{ runner.temp }}/${{ env.vmstatFile }} &
       - run: date -R > ${{ runner.temp }}/${{ env.timingFile }}
       ##########################
         
